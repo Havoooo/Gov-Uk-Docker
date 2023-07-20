@@ -15,8 +15,10 @@ services:
   router-lite:
     <<: *router
     depends_on:
+
       - mongo-3.6
     environment:
+      GOFLAGS: -buildvcs=false
       BINARY: /go/src/github.com/alphagov/router/router
       DEBUG: "true"
       ROUTER_MONGO_URL: mongo-3.6

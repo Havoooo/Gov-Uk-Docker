@@ -20,21 +20,40 @@ services:
   imminence-lite:
     <<: *imminence
     depends_on:
-      - mongo-3.6
+      - postgres-14-postgis
+      - redis
     environment:
-      MONGODB_URI: "mongodb://mongo-3.6/imminence"
-      TEST_MONGODB_URI: "mongodb://mongo-3.6/imminence-test"
+      DATABASE_URL: "postgis://postgres:password@postgres-14-postgis/imminence"
+      TEST_DATABASE_URL: "postgis://postgres:password@postgres-14-postgis/imminence-test"
+      REDIS_URL: redis://redis
 
-  imminence-app:
+  imminence-app: &imminence-app
     <<: *imminence
     depends_on:
-      - mongo-3.6
-      - mapit-app
+      - postgres-14-postgis
+      - local-links-manager-app
+      - locations-api-app
       - nginx-proxy
+      - redis
+      - imminence-worker
     environment:
-      MONGODB_URI: "mongodb://mongo-3.6/imminence"
+      DATABASE_URL: "postgis://postgres:password@postgres-14-postgis/imminence"
       VIRTUAL_HOST: imminence.dev.gov.uk
       BINDING: 0.0.0.0
+      REDIS_URL: redis://redis
     expose:
       - "3000"
     command: bin/rails s --restart
+
+  imminence-worker:
+    <<: *imminence
+    depends_on:
+      - postgres-14-postgis
+      - local-links-manager-app
+      - locations-api-app
+      - nginx-proxy
+      - redis
+    environment:
+      DATABASE_URL: "postgis://postgres:password@postgres-14-postgis/imminence"
+      REDIS_URL: redis://redis
+    command: bundle exec sidekiq -C ./config/sidekiq.yml

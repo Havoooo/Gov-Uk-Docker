@@ -5,9 +5,10 @@ volumes:
   rabbitmq:
   postgres-12:
   postgres-13:
+  postgres-14:
+  postgres-14-postgis:
   mysql-8:
   mongo-3.6:
-  mongo-2.6:
   go:
   elasticsearch-6:
   elasticsearch-7:
@@ -30,6 +31,23 @@ services:
     volumes:
       - postgres-13:/var/lib/postgresql/data
 
+  postgres-14:
+    image: postgres:14
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres-14:/var/lib/postgresql/data
+
+  postgres-14-postgis:
+    # Using the kartoza image because it supports ARM64 and AMD64
+    image: kartoza/postgis:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASS: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres-14-postgis:/var/lib/postgresql/data
+
   memcached:
     image: memcached
 
@@ -40,14 +58,10 @@ services:
     ports:
       - "27017:27017"
       - "28017:28017"
-
-  mongo-2.6:
-    image: mongo:2.6
-    volumes:
-      - mongo-2.6:/data/db
     command: ["--replSet", "mongo-replica-set"]
 
   mysql-8:
+
     image: mysql:8-oracle
     volumes:
       - mysql-8:/var/lib/mysql
@@ -64,12 +78,11 @@ services:
       - rabbitmq:/var/lib/rabbitmq
 
   elasticsearch-6:
-    image: elasticsearch:6.7.0
+    build:
+      context: services/elasticsearch-6
+      dockerfile: Dockerfile
     environment:
-      - http.host=0.0.0.0
-      - transport.host=127.0.0.1
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
     volumes:
       - elasticsearch-6:/usr/share/elasticsearch/data
 
@@ -105,8 +118,13 @@ services:
           - content-data-api.dev.gov.uk
           - content-data-admin.dev.gov.uk
           - content-store.dev.gov.uk
+          - content-store-on-mongodb.dev.gov.uk
+          - content-store-on-postgresql.dev.gov.uk
+          - content-store-proxy.dev.gov.uk
           - content-tagger.dev.gov.uk
+          - draft-content-store.dev.gov.uk
           - draft-origin.dev.gov.uk
+          - draft-router-api.dev.gov.uk
           - draft-router.dev.gov.uk
           - email-alert-api.dev.gov.uk
           - email-alert-frontend.dev.gov.uk
@@ -114,7 +132,7 @@ services:
           - frontend.dev.gov.uk
           - finder-frontend.dev.gov.uk
           - government-frontend.dev.gov.uk
-          - govuk-content-schemas.dev.gov.uk
+          - govspeak-preview.dev.gov.uk
           - govuk-developer-docs.dev.gov.uk
           - govuk-publishing-components.dev.gov.uk
           - hmrc-manuals-api.dev.gov.uk
@@ -124,19 +142,19 @@ services:
           - link-checker-api.dev.gov.uk
           - local-links-manager.dev.gov.uk
           - locations-api.dev.gov.uk
-          - manuals-frontend.dev.gov.uk
           - manuals-publisher.dev.gov.uk
-          - mapit.dev.gov.uk
           - maslow.dev.gov.uk
           - publisher.dev.gov.uk
           - publishing-api.dev.gov.uk
           - release.dev.gov.uk
           - router-api.dev.gov.uk
+          - router-api-postgres.dev.gov.uk
           - router.dev.gov.uk
+          - router-postgres.dev.gov.uk
           - search-admin.dev.gov.uk
           - search-api.dev.gov.uk
           - search.dev.gov.uk
-          - service-manual-frontend.dev.gov.uk
+          - site-search-api.dev.gov.uk
           - service-manual-publisher.dev.gov.uk
           - short-url-manager.dev.gov.uk
           - signon.dev.gov.uk

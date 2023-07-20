@@ -20,6 +20,7 @@ services:
   router-api-lite:
     <<: *router-api
     depends_on:
+
       - mongo-3.6
     environment:
       MONGODB_URI: "mongodb://mongo-3.6/router"
@@ -32,9 +33,24 @@ services:
       - router-app
       - nginx-proxy
     environment:
+
       MONGODB_URI: "mongodb://mongo-3.6/router"
       VIRTUAL_HOST: router-api.dev.gov.uk
       BINDING: 0.0.0.0
+      ROUTER_NODES: ""
+      IS_DOCKER: "true"
     expose:
       - "3000"
     command: bin/rails s --restart
+  
+  router-api-app-draft:
+    <<: *router-api-app
+    depends_on:
+      - mongo-3.6
+      - router-app-draft
+      - nginx-proxy
+    environment:
+      ROUTER_NODES: router-app-draft:3055
+      MONGODB_URI: "mongodb://mongo-3.6/draft-router"
+      VIRTUAL_HOST: draft-router-api.dev.gov.uk
+      BINDING: 0.0.0.0

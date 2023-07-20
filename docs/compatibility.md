@@ -14,8 +14,6 @@ These are repos that can be started as a some kind of process, such as a web app
    - ✅ asset-manager
    - ✅ authenticating-proxy
    - ✅ bouncer
-   - ⚠ cache-clearing-service
-      * **TODO: Missing support for running the app**
    - ❌ ckan
       * Has a [separate](https://github.com/alphagov/docker-ckan) Docker project.
    - ✅  collections
@@ -37,10 +35,10 @@ These are repos that can be started as a some kind of process, such as a web app
    - ✅ finder-frontend
    - ✅ frontend
    - ✅ government-frontend
+   - ✅ govspeak-preview
    - ⚠ govuk_crawler_worker
       * **TODO: Missing support for running the worker**
    - ✅ govuk_publishing_components
-   - ✅ govuk-content-schemas
    - ✅ govuk-developer-docs
    - ✅ hmrc-manuals-api
    - ✅ imminence
@@ -51,9 +49,7 @@ These are repos that can be started as a some kind of process, such as a web app
    - ✅ link-checker-api
    - ✅ local-links-manager
    - ✅ locations-api
-   - ✅ manuals-frontend
    - ✅ manuals-publisher
-   - ✅ mapit
    - ✅ maslow
    - ✅ publisher
    - ✅ publishing-api
@@ -62,7 +58,6 @@ These are repos that can be started as a some kind of process, such as a web app
    - ✅ router-api
    - ✅ search-admin
    - ✅ search-api
-   - ✅ service-manual-frontend
    - ✅ service-manual-publisher
    - ✅ short-url-manager
    - ❌ sidekiq-monitoring
@@ -92,4 +87,5 @@ These repos are used as part of running the live GOV.UK site. Since all of them 
    - ❌ govuk_taxonomy_helpers
    - ✅ plek
    - ❌ slimmer
+   - ✅ smokey
    - ❌ transition-config

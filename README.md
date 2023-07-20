@@ -33,7 +33,6 @@ Run `echo $SHELL` if you're not sure which shell you use. After saving, you will
 ```
 git clone git@github.com:alphagov/govuk-docker.git
 cd govuk-docker
-bundle install
 bin/setup
 ```
 
@@ -65,6 +64,14 @@ make [app-name]
 
 ```sh
 make collections-publisher
+```
+
+You may need to clean up and run this command again after the app setup has been updated.
+
+```sh
+git pull
+govuk-docker down [app-name]
+make [app-name]
 ```
 
 👉 [Check the troubleshooting guide if you have a problem.](docs/troubleshooting.md)
