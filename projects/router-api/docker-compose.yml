@@ -20,7 +20,7 @@ services:
   router-api-lite:
     <<: *router-api
     depends_on:
-      # In production this uses Mongo 2.6, however there is not a published Mongo 2.6 image compatible with ARM64
+
       - mongo-3.6
     environment:
       MONGODB_URI: "mongodb://mongo-3.6/router"
@@ -33,7 +33,7 @@ services:
       - router-app
       - nginx-proxy
     environment:
-      ROUTER_NODES: router-app
+
       MONGODB_URI: "mongodb://mongo-3.6/router"
       VIRTUAL_HOST: router-api.dev.gov.uk
       BINDING: 0.0.0.0

@@ -19,6 +19,7 @@ case "$app" in
   "router"|"draft-router")
     hostname=mongo-router
     database="${app//-/_}"
+
     wait_for_rs=1
     ;;
   "licence-finder")
