@@ -14,8 +14,6 @@ These are repos that can be started as a some kind of process, such as a web app
    - ✅ asset-manager
    - ✅ authenticating-proxy
    - ✅ bouncer
-   - ⚠ cache-clearing-service
-      * **TODO: Missing support for running the app**
    - ❌ ckan
       * Has a [separate](https://github.com/alphagov/docker-ckan) Docker project.
    - ✅  collections
@@ -41,7 +39,6 @@ These are repos that can be started as a some kind of process, such as a web app
    - ⚠ govuk_crawler_worker
       * **TODO: Missing support for running the worker**
    - ✅ govuk_publishing_components
-   - ✅ govuk-content-schemas
    - ✅ govuk-developer-docs
    - ✅ hmrc-manuals-api
    - ✅ imminence
@@ -61,7 +58,6 @@ These are repos that can be started as a some kind of process, such as a web app
    - ✅ router-api
    - ✅ search-admin
    - ✅ search-api
-   - ✅ service-manual-frontend
    - ✅ service-manual-publisher
    - ✅ short-url-manager
    - ❌ sidekiq-monitoring
