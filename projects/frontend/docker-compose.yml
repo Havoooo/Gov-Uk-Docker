@@ -30,6 +30,7 @@ services:
       - nginx-proxy
       - router-app
       - static-app
+      - email-alert-api-app
     environment:
       VIRTUAL_HOST: frontend.dev.gov.uk
       BINDING: 0.0.0.0
