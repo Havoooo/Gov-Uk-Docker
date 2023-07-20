@@ -11,4 +11,4 @@ RUN git clone https://github.com/rbenv/rbenv.git /rbenv
 RUN git clone https://github.com/rbenv/ruby-build.git /rbenv/plugins/ruby-build
 RUN /rbenv/plugins/ruby-build/install.sh
 ENV PATH /root/.rbenv/shims:/rbenv/bin:$PATH
-ENV BUNDLE_SILENCE_ROOT_WARNING 1
+
