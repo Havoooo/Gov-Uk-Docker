@@ -1,5 +1,7 @@
 # Install packages for building ruby
-FROM buildpack-deps
+# TODO: Change from bullseye to stable tag once we've resolved problems with Ruby and SSL
+#       See https://github.com/alphagov/govuk-docker/pull/666 for more info.
+FROM buildpack-deps:bullseye
 
 # Install chromium browser and its webdriver
 RUN apt-get update -qq && apt-get install -y chromium chromium-driver
@@ -8,7 +10,7 @@ RUN apt-get update -qq && apt-get install -y chromium chromium-driver
 ENV GOVUK_TEST_CHROME_NO_SANDBOX 1
 
 # Install node / yarn
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update -qq && apt-get install -y yarn nodejs
