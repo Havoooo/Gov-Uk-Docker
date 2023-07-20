@@ -34,8 +34,20 @@ services:
       - nginx-proxy
     environment:
       MONGODB_URI: "mongodb://mongo-3.6/content-store"
-      VIRTUAL_HOST: content-store.dev.gov.uk
+      VIRTUAL_HOST: content-store-on-mongodb.dev.gov.uk
       BINDING: 0.0.0.0
     expose:
       - "3000"
     command: bin/rails s --restart
+  
+  content-store-app-draft:
+    <<: *content-store-app
+    depends_on:
+      - mongo-3.6
+      - router-api-app-draft
+      - nginx-proxy
+    environment:
+      PLEK_HOSTNAME_PREFIX: "draft-"
+      MONGODB_URI: "mongodb://mongo-3.6/draft-content-store"
+      VIRTUAL_HOST: draft-content-store.dev.gov.uk
+      BINDING: 0.0.0.0
