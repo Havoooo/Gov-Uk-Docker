@@ -25,8 +25,7 @@ services:
     depends_on:
       - redis
       - rabbitmq
-      - elasticsearch-6
-
+      
   search-api-app: &search-api-app
     <<: *search-api
     depends_on:

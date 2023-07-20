@@ -78,9 +78,6 @@ services:
       - rabbitmq:/var/lib/rabbitmq
 
   elasticsearch-6:
-    build:
-      context: services/elasticsearch-6
-      dockerfile: Dockerfile
     environment:
       ES_JAVA_OPTS: -Xms1g -Xmx1g
     volumes:
