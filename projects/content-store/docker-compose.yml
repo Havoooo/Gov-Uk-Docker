@@ -20,6 +20,7 @@ services:
   content-store-lite:
     <<: *content-store
     depends_on:
+      # In production this uses Mongo 2.6, however there is not a published Mongo 2.6 image compatible with Arm64
       - mongo-3.6
     environment:
       MONGODB_URI: "mongodb://mongo-3.6/content-store"
@@ -33,7 +34,7 @@ services:
       - nginx-proxy
     environment:
       MONGODB_URI: "mongodb://mongo-3.6/content-store"
-      VIRTUAL_HOST: content-store.dev.gov.uk
+      VIRTUAL_HOST: content-store-on-mongodb.dev.gov.uk
       BINDING: 0.0.0.0
     expose:
       - "3000"

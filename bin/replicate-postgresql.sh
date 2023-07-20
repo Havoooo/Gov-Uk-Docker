@@ -1,10 +1,31 @@
 #!/usr/bin/env bash
 
 function try_find_file {
+  app="$1"
+
+  # Work out the database hostname
+  case "$app" in
+    "bouncer"|"transition")
+      # Bouncer and Transition share a database with a non-standard hostname (ending with "postgresql" not "postgres")
+      db_hostname="transition-postgresql"
+      ;;
+    "content-data-api")
+      # Content Data API has a non-standard hostname (ending with "postgresql" not "postgres")
+      db_hostname="content-data-api-postgresql"
+      ;;
+    *)
+      db_hostname="${app}-postgres"
+      ;;
+  esac
+
   set +e
-  out="$(aws s3 ls "s3://${bucket}/postgresql-backend/" | grep "${1}_production.gz" | sed 's/.* //' | sort | tail -n1)"
+  # Find the most recent database dump from that host
+  out="$(aws s3 ls "s3://${bucket}/${db_hostname}/" | grep "\.gz$" | sed 's/.* //' | sort | tail -n1)"
   set -e
-  echo "$out"
+
+  if [[ -n "$out" ]]; then
+    echo "${db_hostname}/${out}"
+  fi
 }
 
 set -eu
@@ -19,17 +40,9 @@ app="${1//_/-}"
 replication_dir="${GOVUK_DOCKER_REPLICATION_DIR:-${GOVUK_DOCKER_DIR:-${GOVUK_ROOT_DIR:-$HOME/govuk}/govuk-docker}/replication}"
 
 bucket="govuk-integration-database-backups"
+
 archive_dir="${replication_dir}/postgresql"
-
-case "$app" in
-  "support-api")
-    archive_file="support_contacts_production.dump.gz"
-    ;;
-  *)
-    archive_file="${app//-/_}_production.dump.gz"
-    ;;
-esac
-
+archive_file="${app//-/_}_production.dump.gz"
 archive_path="${archive_dir}/${archive_file}"
 
 echo "Replicating postgres for $app"
@@ -40,13 +53,10 @@ else
   mkdir -p "$archive_dir"
   s3_file=$(try_find_file "$app")
   if [[ -z "$s3_file" ]]; then
-    s3_file=$(try_find_file "${app//-/_}")
-  fi
-  if [[ -z "$s3_file" ]]; then
     echo "couldn't figure out backup filename in S3 - if you're sure the app uses PostgreSQL, file an issue in alphagov/govuk-docker."
     exit 1
   fi
-  aws s3 cp "s3://${bucket}/postgresql-backend/${s3_file}" "${archive_path}"
+  aws s3 cp "s3://${bucket}/${s3_file}" "${archive_path}"
 fi
 
 if [[ -n "${SKIP_IMPORT:-}" ]]; then
@@ -57,15 +67,18 @@ fi
 echo "stopping running govuk-docker containers..."
 govuk-docker down
 
-govuk-docker up -d postgres-9.6
-trap 'govuk-docker stop postgres-9.6' EXIT
+postgres_container="$(govuk-docker config | ruby -ryaml -e "puts YAML::load(STDIN.read).dig('services', '${app}-lite', 'depends_on').keys.select { |k| k.start_with? 'postgres-' }")"
+govuk-docker up -d "$postgres_container"
+trap 'govuk-docker down' EXIT
 
 echo "waiting for postgres..."
-until govuk-docker run postgres-9.6 /usr/bin/psql -h postgres-9.6 -U postgres -c 'SELECT 1' &>/dev/null; do
+until govuk-docker run --rm -T "$postgres_container" /usr/bin/psql -h "$postgres_container" -U postgres -c 'SELECT 1' &>/dev/null; do
   sleep 1
 done
 
-database="$app"
-govuk-docker run postgres-9.6 /usr/bin/psql -h postgres-9.6 -U postgres -c "DROP DATABASE IF EXISTS \"${database}\""
-govuk-docker run postgres-9.6 /usr/bin/createdb -h postgres-9.6 -U postgres "$database"
-pv "$archive_path" | govuk-docker run postgres-9.6 /usr/bin/pg_restore -h postgres-9.6 -U postgres -d "$database" --no-owner
+# Extract the local database name from the app's DATABASE_URL environment variable
+database="$(govuk-docker config | ruby -ryaml -e "puts YAML::load(STDIN.read).dig('services', '${app}-app', 'environment', 'DATABASE_URL').split('/').last")"
+
+govuk-docker run --rm -T "$postgres_container" /usr/bin/psql -h "$postgres_container" -U postgres -c "DROP DATABASE IF EXISTS \"${database}\""
+govuk-docker run --rm -T "$postgres_container" /usr/bin/createdb -h "$postgres_container" -U postgres "$database"
+pv "$archive_path" | govuk-docker run --rm -T "$postgres_container" /usr/bin/pg_restore -h "$postgres_container" -U postgres -d "$database" --no-owner --no-privileges

@@ -21,6 +21,7 @@ x-travel-advice-publisher: &travel-advice-publisher
 services:
   travel-advice-publisher-lite:
     <<: *travel-advice-publisher
+    shm_size: 512mb
     depends_on:
       - mongo-3.6
       - redis
@@ -55,7 +56,5 @@ services:
       - publishing-api-app
       - asset-manager-app
     environment:
-      # The version of PostgreSQL temporarily does not match production, as an upgrade in production is being worked on (tracked in https://trello.com/c/9PayaOSK)
-      DATABASE_URL: "postgresql://postgres@postgres-13/travel-advice-publisher"
       REDIS_URL: redis://redis
     command: bundle exec sidekiq -C ./config/sidekiq.yml

@@ -13,14 +13,15 @@ default:
 	@echo "For example:"
 	@echo "    make content-publisher"
 
-lint:
-	# Lint the ruby code
-	bundle exec rubocop
+test-local: test-scripts
+	$(GOVUK_DOCKER) run govuk-docker-lite bundle exec rubocop
+	$(GOVUK_DOCKER) run govuk-docker-lite bundle exec rspec
 
-test:
-	# Run the tests for the govuk-docker CLI
+test-ci: test-scripts
+	bundle exec rubocop
 	bundle exec rspec
 
+test-scripts:
 	# Test that the docker-compose config is valid. This will error if there are errors
 	# in the YAML files, or incompatible features are used.
 	$(GOVUK_DOCKER) config > /dev/null
@@ -28,7 +29,7 @@ test:
 	# Validate shell scripts
 	$(SHELLCHECK) $(shell ls ${GOVUK_DOCKER_DIR}/bin/*.sh ${GOVUK_DOCKER_DIR}/exe/*)
 
-bundle-%: clone-%
+bundle-%: clone-% branch-checks-%
 	$(GOVUK_DOCKER) build $*-lite
 	$(GOVUK_DOCKER) run $*-lite rbenv install -s || ($(GOVUK_DOCKER) build --no-cache $*-lite; $(GOVUK_DOCKER) run $*-lite rbenv install -s)
 	if [ -f "${GOVUK_ROOT_DIR}/$*/Gemfile.lock" ]; then $(GOVUK_DOCKER) run $*-lite sh -c 'gem install --conservative --no-document bundler -v $$(grep -A1 "BUNDLED WITH" Gemfile.lock | tail -1)'; fi
@@ -38,5 +39,8 @@ clone-%:
 	@if [ ! -d "${GOVUK_ROOT_DIR}/$*/.git" ]; then \
 		echo "$*" && git clone "git@github.com:alphagov/$*.git" "${GOVUK_ROOT_DIR}/$*"; \
 	fi
+
+branch-checks-%:
+	$(GOVUK_DOCKER_DIR)/bin/branch_checks.sh $*
 
 include $(shell ls ${GOVUK_DOCKER_DIR}/projects/*/Makefile)

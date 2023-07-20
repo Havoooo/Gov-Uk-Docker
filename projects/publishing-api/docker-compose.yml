@@ -20,7 +20,6 @@ services:
   publishing-api-lite:
     <<: *publishing-api
     depends_on:
-      # The version of PostgreSQL temporarily does not match production, as an upgrade in production is being worked on (tracked in https://trello.com/c/9PayaOSK)
       - postgres-13
       - redis
       - rabbitmq
@@ -40,6 +39,8 @@ services:
       - redis
       - nginx-proxy
     environment:
+      RABBITMQ_EXCHANGE: published_documents
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       DATABASE_URL: "postgresql://postgres@postgres-13/publishing-api"
       REDIS_URL: redis://redis
       VIRTUAL_HOST: publishing-api.dev.gov.uk
@@ -54,6 +55,8 @@ services:
       - postgres-13
       - redis
     environment:
+      RABBITMQ_EXCHANGE: published_documents
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       DATABASE_URL: "postgresql://postgres@postgres-13/publishing-api"
       REDIS_URL: redis://redis
     command: bundle exec sidekiq -C ./config/sidekiq.yml

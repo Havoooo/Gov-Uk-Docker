@@ -17,33 +17,53 @@ x-whitehall: &whitehall
     - whitehall-tmp:/govuk/whitehall/tmp
     - whitehall-node-modules:/govuk/whitehall/node_modules
   working_dir: /govuk/whitehall
+  # Mount /tmp as a tmpfs volume. This is a workaround until docker/for-linux#1015 is resolved.
+  # See alphagov/govuk-docker#537 for more info.
+  tmpfs: /tmp:exec
 
 services:
   whitehall-lite:
     <<: *whitehall
+    shm_size: 512mb
     depends_on:
-      - mysql-5.5
+      - mysql-8
       - redis
     environment:
       DATABASE_CLEANER_ALLOW_REMOTE_DATABASE_URL: "true"
-      DATABASE_URL: "mysql2://root:root@mysql-5.5/whitehall_development"
-      TEST_DATABASE_URL: "mysql2://root:root@mysql-5.5/whitehall_test"
+      DATABASE_URL: "mysql2://root:root@mysql-8/whitehall_development"
+      TEST_DATABASE_URL: "mysql2://root:root@mysql-8/whitehall_test"
       REDIS_URL: redis://redis
 
   whitehall-app: &whitehall-app
     <<: *whitehall
     depends_on:
-      - mysql-5.5
+      - mysql-8
       - redis
       - static-app
       - nginx-proxy
       - asset-manager-app
       - publishing-api-app
+      - whitehall-worker
     environment:
-      DATABASE_URL: "mysql2://root:root@mysql-5.5/whitehall_development"
+      GOVUK_PROXY_STATIC_ENABLED: "true"
+      DATABASE_URL: "mysql2://root:root@mysql-8/whitehall_development"
       REDIS_URL: redis://redis
       VIRTUAL_HOST: whitehall-admin.dev.gov.uk, whitehall-frontend.dev.gov.uk
       BINDING: 0.0.0.0
+      DISABLE_ASSETS_DEBUG:
     expose:
       - "3000"
     command: bin/rails s --restart
+
+  whitehall-worker:
+    <<: *whitehall
+    depends_on:
+      - mysql-8
+      - redis
+      - nginx-proxy
+      - asset-manager-app
+      - publishing-api-app
+    environment:
+      DATABASE_URL: "mysql2://root:root@mysql-8/whitehall_development"
+      REDIS_URL: redis://redis
+    command: bundle exec sidekiq -C ./config/sidekiq.yml

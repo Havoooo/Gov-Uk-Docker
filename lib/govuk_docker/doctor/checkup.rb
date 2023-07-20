@@ -18,7 +18,9 @@ module GovukDocker::Doctor
       installed? if checkups.include?(:installed)
       running? if checkups.include?(:running)
       running_as_different_user? if checkups.include?(:running_as_different_user)
+      dnsmasq_config? if checkups.include?(:dnsmasq_config)
       dnsmasq_resolver? if checkups.include?(:dnsmasq_resolver)
+      dnsmasq_resolving? if checkups.include?(:dnsmasq_resolving)
     end
 
     def up_to_date?
@@ -45,7 +47,9 @@ module GovukDocker::Doctor
       install_state_message if checkups.include?(:installed)
       run_state_message if checkups.include?(:running)
       running_user_message if checkups.include?(:running_as_different_user)
+      dnsmasq_config_message if checkups.include?(:dnsmasq_config)
       dnsmasq_resolver_message if checkups.include?(:dnsmasq_resolver)
+      dnsmasq_resolving_message if checkups.include?(:dnsmasq_resolving)
     end
 
     def up_to_date_state_message
@@ -73,7 +77,7 @@ module GovukDocker::Doctor
     end
 
     def running_as_different_user?
-      @running_as_different_user ||= system "ps aux | grep `pgrep #{service_name}` | grep -v `whoami` 1>/dev/null"
+      @running_as_different_user ||= running? && !system("pgrep -u `whoami` #{service_name} 1>/dev/null")
     end
 
     def running_user_message
@@ -81,6 +85,20 @@ module GovukDocker::Doctor
                           messages[:running_as_different_user]
                         else
                           messages[:not_running_as_different_user]
+                        end
+    end
+
+    def dnsmasq_config?
+      brew_prefix = `brew --prefix`.strip
+      File.exist?("#{brew_prefix}/etc/dnsmasq.conf") &&
+        File.exist?("#{brew_prefix}/etc/dnsmasq.d/development.conf")
+    end
+
+    def dnsmasq_config_message
+      return_message << if dnsmasq_config?
+                          messages[:dnsmasq_config]
+                        else
+                          messages[:not_dnsmasq_config]
                         end
     end
 
@@ -93,6 +111,18 @@ module GovukDocker::Doctor
                           messages[:dnsmasq_resolver]
                         else
                           messages[:not_dnsmasq_resolver]
+                        end
+    end
+
+    def dnsmasq_resolving?
+      `dig +short +time=1 +tries=1 app.dev.gov.uk @127.0.0.1`.strip == "127.0.0.1"
+    end
+
+    def dnsmasq_resolving_message
+      return_message << if dnsmasq_resolving?
+                          messages[:dnsmasq_resolving]
+                        else
+                          messages[:not_dnsmasq_resolving]
                         end
     end
   end
