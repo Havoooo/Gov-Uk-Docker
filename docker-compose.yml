@@ -58,6 +58,7 @@ services:
     ports:
       - "27017:27017"
       - "28017:28017"
+    command: ["--replSet", "mongo-replica-set"]
 
   mysql-8:
     # Using the orcale image because they are available in ARM64 and AMD64 variants
@@ -77,12 +78,11 @@ services:
       - rabbitmq:/var/lib/rabbitmq
 
   elasticsearch-6:
-    image: elasticsearch:6.7.0
+    build:
+      context: services/elasticsearch-6
+      dockerfile: Dockerfile
     environment:
-      - http.host=0.0.0.0
-      - transport.host=127.0.0.1
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
     volumes:
       - elasticsearch-6:/usr/share/elasticsearch/data
 
@@ -118,9 +118,13 @@ services:
           - content-data-api.dev.gov.uk
           - content-data-admin.dev.gov.uk
           - content-store.dev.gov.uk
+          - content-store-on-mongodb.dev.gov.uk
           - content-store-on-postgresql.dev.gov.uk
+          - content-store-proxy.dev.gov.uk
           - content-tagger.dev.gov.uk
+          - draft-content-store.dev.gov.uk
           - draft-origin.dev.gov.uk
+          - draft-router-api.dev.gov.uk
           - draft-router.dev.gov.uk
           - email-alert-api.dev.gov.uk
           - email-alert-frontend.dev.gov.uk
@@ -148,6 +152,7 @@ services:
           - search-admin.dev.gov.uk
           - search-api.dev.gov.uk
           - search.dev.gov.uk
+          - site-search-api.dev.gov.uk
           - service-manual-publisher.dev.gov.uk
           - short-url-manager.dev.gov.uk
           - signon.dev.gov.uk

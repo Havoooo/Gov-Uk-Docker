@@ -47,6 +47,30 @@ services:
       - "3000"
     command: bin/rails s --restart
 
+  finder-frontend-app-prototype: &finder-frontend-app
+    <<: *finder-frontend
+    depends_on:
+      - account-api-app
+      - content-store-app
+      - email-alert-api-app
+      - frontend-app
+      - memcached
+      - nginx-proxy
+      - router-app
+      - site-search-api-prototype-app
+      - static-app
+    environment:
+      GOVUK_PROXY_STATIC_ENABLED: "true"
+      VIRTUAL_HOST: finder-frontend.dev.gov.uk
+      BINDING: 0.0.0.0
+      MEMCACHE_SERVERS: memcached
+      PLEK_SERVICE_SEARCH_API_URI: http://site-search-api-prototype-app:3000
+      PLEK_SERVICE_CONTENT_STORE_URI: https://www.gov.uk/api
+      PROTOTYPE_NAME: Meilisearch (initial proof of concept)
+    expose:
+      - "3000"
+    command: bin/rails s --restart
+
   finder-frontend-app-live:
     <<: *finder-frontend-app
     depends_on:
@@ -59,5 +83,20 @@ services:
       GOVUK_PROXY_STATIC_ENABLED: "true"
       PLEK_SERVICE_CONTENT_STORE_URI: https://www.gov.uk/api
       PLEK_SERVICE_STATIC_URI: https://assets.publishing.service.gov.uk
+      VIRTUAL_HOST: finder-frontend.dev.gov.uk
+      BINDING: 0.0.0.0
+
+  finder-frontend-app-integration:
+    <<: *finder-frontend-app
+    depends_on:
+      - account-api-app-live
+      - nginx-proxy
+    environment:
+      PLEK_SERVICE_SEARCH_API_URI: https://www.integration.publishing.service.gov.uk/api
+      PLEK_SERVICE_WHITEHALL_FRONTEND_URI: https://www.integration.publishing.service.gov.uk
+      GOVUK_WEBSITE_ROOT: https://www.integration.publishing.service.gov.uk
+      GOVUK_PROXY_STATIC_ENABLED: "true"
+      PLEK_SERVICE_CONTENT_STORE_URI: https://www.integration.publishing.service.gov.uk/api
+      PLEK_SERVICE_STATIC_URI: https://assets.integration.publishing.service.gov.uk
       VIRTUAL_HOST: finder-frontend.dev.gov.uk
       BINDING: 0.0.0.0
